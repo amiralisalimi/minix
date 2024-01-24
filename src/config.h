@@ -6,7 +6,7 @@
 
 typedef struct Route {
     char url[MAX_STR_LENGTH];   // The url address
-    char path[MAX_STR_LENGTH];  // The static directory path on the host machine
+    char static_path[MAX_STR_LENGTH];  // The static directory path on the host machine
     int port;                   // The port number on the host machine
 } Route;
 

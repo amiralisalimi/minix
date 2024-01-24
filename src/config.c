@@ -5,6 +5,9 @@
 Route routes[MAX_ROUTES];
 int number_of_routes = 0;
 
+int ispref(const char *pre, const char *str) {
+    return strncmp(pre, str, strlen(pre)) == 0;
+}
 
 int read_config_file() {
     FILE *file = fopen("config.txt", "r");
@@ -46,7 +49,7 @@ int read_config_file() {
         Route route;
         route.port = port;
         memcpy(route.url, url, sizeof url);
-        memcpy(route.path, path, sizeof path);
+        memcpy(route.static_path, path, sizeof path);
         routes[number_of_routes++] = route;
     }
     fclose(file);
@@ -60,6 +63,6 @@ void print_all_config() {
         if (routes[i].port)
             printf("port: %d\n", routes[i].port);
         else
-            printf("path: %s\n", routes[i].path);
+            printf("path: %s\n", routes[i].static_path);
     }
 }
