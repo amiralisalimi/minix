@@ -10,11 +10,12 @@
 
 #define BUFFER_SIZE (1 << 20)
 #define MAX_ROUTES  20
+#define MAX_STR_LENGTH 100
 
 typedef struct Route {
-    char *url;      // The url address
-    int port;       // The port number on the host machine
-    char *path;     // The static directory path on the host machine
+    char url[MAX_STR_LENGTH];      // The url address
+    char path[MAX_STR_LENGTH];     // The static directory path on the host machine
+    int port;                         // The port number on the host machine
 } Route;
 
 Route routes[MAX_ROUTES];
