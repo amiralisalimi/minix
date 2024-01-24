@@ -9,6 +9,17 @@
 #include <unistd.h>
 
 #define BUFFER_SIZE (1 << 20)
+#define MAX_ROUTES  20
+
+typedef struct Route {
+    char *url;      // The url address
+    int port;       // The port number on the host machine
+    char *path;     // The static directory path on the host machine
+} Route;
+
+Route routes[MAX_ROUTES];
+int number_of_routes = 0;
+
 
 int initsock(int port) {
     int server_fd;
