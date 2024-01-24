@@ -7,19 +7,8 @@
 #include <netinet/in.h>
 #include <pthread.h>
 #include <unistd.h>
-
-#define BUFFER_SIZE (1 << 20)
-#define MAX_ROUTES  20
-#define MAX_STR_LENGTH 100
-
-typedef struct Route {
-    char url[MAX_STR_LENGTH];      // The url address
-    char path[MAX_STR_LENGTH];     // The static directory path on the host machine
-    int port;                         // The port number on the host machine
-} Route;
-
-Route routes[MAX_ROUTES];
-int number_of_routes = 0;
+#include "config.h"
+#include "defs.h"
 
 
 int initsock(int port) {
@@ -66,6 +55,8 @@ void *handle_req(void *arg) {
 }
 
 int main(int argc, char *argv[]) {
+    read_config_file();
+    print_all_config();  // Just for test
     int port = (argc > 1 ? atoi(argv[1]) : 8000);
     int server_fd = initsock(port);
 
