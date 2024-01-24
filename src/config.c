@@ -9,6 +9,17 @@ int ispref(const char *pre, const char *str) {
     return strncmp(pre, str, strlen(pre)) == 0;
 }
 
+Route *get_route(const char *url) {
+    Route *route = NULL;
+    for (int i = 0; i < MAX_ROUTES; i++) {
+        const char *cur_url = routes[i].url;
+        if (ispref(cur_url, url) && (route == NULL || strlen(cur_url) > strlen(route->url))) {
+            route = &routes[i];
+        }
+    }
+    return route;
+}
+
 int read_config_file() {
     FILE *file = fopen("config.txt", "r");
 

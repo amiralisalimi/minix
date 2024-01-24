@@ -10,8 +10,8 @@ typedef struct Route {
     int port;                   // The port number on the host machine
 } Route;
 
-
 int read_config_file();
 void print_all_config();
+Route *get_route(const char *url);
 
 #endif //PROJECT_CONFIG_H

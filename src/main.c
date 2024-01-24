@@ -1,3 +1,4 @@
+#include <arpa/inet.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -9,7 +10,6 @@
 #include <unistd.h>
 #include "config.h"
 #include "defs.h"
-
 
 int initsock(int port) {
     int server_fd;
@@ -37,17 +37,6 @@ int initsock(int port) {
     return server_fd;
 }
 
-Route *get_route(const char *url) {
-    Route *route = NULL;
-    for (int i = 0; i < MAX_ROUTES; i++) {
-        const char *cur_url = routes[i].url;
-        if (ispref(cur_url, url) && (route == NULL || strlen(cur_url) > strlen(route->url))) {
-            route = &routes[i];
-        }
-    }
-    return route;
-}
-
 char *redirect_from_dest(const Route *route, const char *http_req) {
     int dest_fd;
     struct sockaddr_in dest_addr;
@@ -67,7 +56,7 @@ char *redirect_from_dest(const Route *route, const char *http_req) {
 
     int status;
     if ((status = connect(dest_fd,
-                    (struct socketaddr*) &dest_addr,
+                    (struct sockaddr*) &dest_addr,
                     sizeof(dest_addr) < 0))) {
         perror("connection to destination failed");
         return NULL;
