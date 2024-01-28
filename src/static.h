@@ -8,4 +8,5 @@
 #include <malloc.h>
 #include <fcntl.h>
 #include <sys/socket.h>
+#include <dirent.h>
 #endif
