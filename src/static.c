@@ -7,38 +7,30 @@ char* get_file(int file_fd, struct stat statbuf, char* address, int* response_si
     fseek(fp, 0, SEEK_END);
     int file_size = ftell(fp);
     fseek(fp, 0, SEEK_SET);
+
     char * file_buf = malloc(file_size);
     fread(file_buf, 1, file_size, fp);
+
     char* filename = basename(address);
+
     char header[1000];
-    sprintf(header, 
-        "HTTP/1.1 200 OK\n"
-        "Content-Type: application/octet-stream\n"
-        "Accept-Ranges: bytes\n"
-        "Content-Disposition: attachment; filename=\"%s\" \n" 
-        "Content-Length: %d\n"
-        "Connection: keep-alive\n\n",
-        filename, file_size);
+
+    sprintf(header, FILE_HTTP_HEADER, filename, file_size);
     *response_size = file_size + strlen(header);
     char *response = (char*) malloc(*response_size);
     memcpy(response, header, strlen(header));
     memcpy(response + strlen(header), file_buf, file_size);
+    
     free(file_buf);
     return response;
 }
 
 char* get_directory(int dir_fd, char* address){
     char header[300];
-    sprintf(header, 
-        "HTTP/1.1 200 OK \n"
-        "Content-Type: text/html; charset:utf-8 \n"
-        "Connection: close\n\n");
+    sprintf(header, DIR_HTTP_HEADER);
     char *response = (char*) malloc(strlen(header) + 10000);
     strncpy(response, header, strlen(header));
-    sprintf(response + strlen(header), "<html> \n"
-                      "<head><title>Index of %s</title></head>\n"
-                    "<body> \n"
-                    "<h1>Index of %s</h1><hr><pre><a href=\"../\">../</a> \n", address, address);
+    sprintf(response + strlen(header), DIR_HTML_HEADER, address, address);
 
     int size = 10000 - sizeof(response);
 

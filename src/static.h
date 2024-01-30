@@ -15,6 +15,23 @@
 
 #define PATH_MAX 4096
 
+#define FILE_HTTP_HEADER "HTTP/1.1 200 OK\n" \
+        "Content-Type: application/octet-stream\n" \
+        "Accept-Ranges: bytes\n" \
+        "Content-Disposition: attachment; filename=\"%s\" \n" \
+        "Content-Length: %d\n" \
+        "Connection: keep-alive\n\n"
+
+#define DIR_HTTP_HEADER "HTTP/1.1 200 OK \n" \
+        "Content-Type: text/html; charset:utf-8 \n" \
+        "Connection: close\n\n"
+
+#define DIR_HTML_HEADER "<html> \n" \
+                      "<head><title>Index of %s</title></head>\n" \
+                    "<body> \n" \
+                    "<h1>Index of %s</h1><hr><pre><a href=\"../\">../</a> \n"
+
+                    
 char* handle_static(Route* route, char* url, int* response_size);
 
 #endif
