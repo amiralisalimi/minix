@@ -15,22 +15,22 @@ char* get_file(int file_fd, struct stat statbuf, char* address, int* response_si
 
     char header[1000];
 
-    sprintf(header, FILE_HTTP_HEADER, filename, file_size);
+    snprintf(header, 1000, FILE_HTTP_HEADER, filename, file_size);
     *response_size = file_size + strlen(header);
     char *response = (char*) malloc(*response_size);
     memcpy(response, header, strlen(header));
     memcpy(response + strlen(header), file_buf, file_size);
-    
+
     free(file_buf);
     return response;
 }
 
 char* get_directory(int dir_fd, char* address){
     char header[300];
-    sprintf(header, DIR_HTTP_HEADER);
+    snprintf(header, strlen(DIR_HTTP_HEADER), DIR_HTTP_HEADER);
     char *response = (char*) malloc(strlen(header) + 10000);
     strncpy(response, header, strlen(header));
-    sprintf(response + strlen(header), DIR_HTML_HEADER, address, address);
+    snprintf(response + strlen(header), 10000, DIR_HTML_HEADER, address, address);
 
     int size = 10000 - sizeof(response);
 
@@ -46,12 +46,12 @@ char* get_directory(int dir_fd, char* address){
             char timeStr[20];
             strftime(timeStr, sizeof(timeStr), "%Y-%m-%d %H:%M:%S", localtime(&fileStat.st_mtime));
             if (S_ISREG(fileStat.st_mode)) {
-                sprintf(html_entry, "<a href=\"%s\">%s</a>                                            %s                   %lld \n",
-                entry->d_name, entry->d_name, timeStr, (long long)fileStat.st_size);
+                snprintf(html_entry, 5000, "<a href=\"%s\">%s</a>                                            %s                   %lld \n",
+                    entry->d_name, entry->d_name, timeStr, (long long)fileStat.st_size);
             }
             if (S_ISDIR(fileStat.st_mode)) {
-                sprintf(html_entry, "<a href=\"%s/\">%s/</a>                                            %s                   - \n",
-                entry->d_name, entry->d_name, timeStr);
+                snprintf(html_entry, 5000, "<a href=\"%s/\">%s/</a>                                            %s                   - \n",
+                    entry->d_name, entry->d_name, timeStr);
             }
         }
         if (size > strlen(html_entry)){
