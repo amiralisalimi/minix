@@ -11,7 +11,7 @@ int ispref(const char *pre, const char *str) {
 
 Route *get_route(const char *url) {
     Route *route = NULL;
-    for (int i = 0; i < MAX_ROUTES; i++) {
+    for (int i = 0; i < number_of_routes; i++) {
         const char *cur_url = routes[i].url;
         if (ispref(cur_url, url) && (route == NULL || strlen(cur_url) > strlen(route->url))) {
             route = &routes[i];

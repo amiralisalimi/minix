@@ -8,5 +8,7 @@
 
 #define LOCALHOST "127.0.0.1"
 #define HTTP_RESPONSE_BAD_REQUEST "HTTP 400 Bad Request"
+#define HTTP_RESPONSE_NOT_FOUND "HTTP/1.1 404 Not Found \n Content-Type: text/html \n\n <html> \n<head><title>404 Not Found</title></head> \n<body> \n<center><h1>404 Not Found</h1></center>\n</body>\n</html>"
+
 
 #endif //PROJECT_DEFS_H

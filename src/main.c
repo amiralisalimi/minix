@@ -11,6 +11,7 @@
 #include <unistd.h>
 #include "config.h"
 #include "defs.h"
+#include "static.h"
 
 int initsock(int port) {
     int server_fd;
@@ -20,6 +21,9 @@ int initsock(int port) {
         perror("socket failed");
         exit(1);
     }
+
+    int true = 1;
+    setsockopt(server_fd,SOL_SOCKET,SO_REUSEADDR,&true,sizeof(int));
 
     server_addr.sin_family = AF_INET;
     server_addr.sin_addr.s_addr = INADDR_ANY;
@@ -82,18 +86,33 @@ char *get_response(int client_fd, const char *buffer) {
     socklen_t client_addr_len = sizeof(client_addr);
     int res = getpeername(client_fd, (struct sockaddr*) &client_addr, &client_addr_len);
 
-    regex_t regex;
-    regcomp(&regex, "^GET /([^ ]*) HTTP/1", REG_EXTENDED);
+    regex_t regex, regex_with_slash;
+    regcomp(&regex, "^GET /([^ ]*[^/]) HTTP/1", REG_EXTENDED);
+    regcomp(&regex_with_slash, "^GET /([^ ]*/) HTTP/1", REG_EXTENDED);
     regmatch_t matches[2];
-
-    if (regexec(&regex, buffer, 2, matches, 0) == 0) {
+    int result1;
+    if ((result1 = regexec(&regex, buffer, 2, matches, 0)) == 0 ||
+         regexec(&regex_with_slash, buffer, 2, matches, 0) == 0) {
         char url[MAX_STR_LENGTH];
-        strncpy(url, buffer + matches[1].rm_so - 1, matches[1].rm_eo - matches[1].rm_so + 1);
+        int len = matches[1].rm_eo - matches[1].rm_so + 1;
+        memcpy(url, (buffer +  matches[1].rm_so - 1), len);
+        if (result1 == 0){
+            url[len] = '/';
+            len++;
+        }
+        url[len] = '\0';
+        regfree(&regex);
+        regfree(&regex_with_slash);
         Route *route = get_route(url);
-        if (route->port > 0) {
+        if (route == NULL){
+            char* response = malloc(sizeof(HTTP_RESPONSE_NOT_FOUND));
+            strncpy(response, HTTP_RESPONSE_NOT_FOUND, sizeof(HTTP_RESPONSE_NOT_FOUND));
+            return response;
+        }
+        else if (route->port > 0) {
             return redirect_from_dest(route, buffer);
         } else if (route->static_path) {
-            // TODO: send file to http request
+            return handle_static(route, url);
         }
     }
     return NULL;
@@ -108,7 +127,7 @@ void *handle_req(void *arg) {
     if (bytes_recvd > 0) {
         response = get_response(client_fd, buffer);
         if (response)
-            send(client_fd, response, sizeof(response), 0);
+            send(client_fd, response, strlen(response), 0);
         else
             send(client_fd, HTTP_RESPONSE_BAD_REQUEST, sizeof(HTTP_RESPONSE_BAD_REQUEST), 0);
     }
@@ -139,6 +158,7 @@ int main(int argc, char *argv[]) {
     read_config_file();
     print_all_config();  // Just for test
     int port = (argc > 1 ? atoi(argv[1]) : 8000);
+
     server_fd = initsock(port);
 
     for (;;) {
