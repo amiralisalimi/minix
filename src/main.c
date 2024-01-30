@@ -86,8 +86,10 @@ char *redirect_from_dest(const Route *route, char *http_req, int* response_size)
 
     char *buffer = (char*) malloc(BUFFER_SIZE * sizeof(char));
     int res;
-    int pointer  =0;
-    while(res = read(dest_fd, buffer + pointer, (BUFFER_SIZE - pointer) * sizeof(char)) > 0);
+    int pointer = 0;
+    while((res = read(dest_fd, buffer + pointer, (BUFFER_SIZE - pointer) * sizeof(char))) > 0){
+        pointer += res;
+    }
 
     if (res < 0) {
         perror("unable to read from destination");

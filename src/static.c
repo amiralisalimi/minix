@@ -7,7 +7,6 @@ char* get_file(int file_fd, struct stat statbuf, char* address, int* response_si
     fseek(fp, 0, SEEK_END);
     int file_size = ftell(fp);
     fseek(fp, 0, SEEK_SET);
-    printf("%d\n", file_size);
     char * file_buf = malloc(file_size);
     fread(file_buf, 1, file_size, fp);
     char* filename = basename(address);
