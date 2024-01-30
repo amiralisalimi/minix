@@ -1,21 +1,29 @@
 #include "static.h"
 
 
-char* get_file(int file_fd, struct stat statbuf, char* address){
+char* get_file(int file_fd, struct stat statbuf, char* address, int* response_size){
+    FILE *fp = fopen(address, "r");
 
-    int fileLen = statbuf.st_size;
+    fseek(fp, 0, SEEK_END);
+    int file_size = ftell(fp);
+    fseek(fp, 0, SEEK_SET);
+    printf("%d\n", file_size);
+    char * file_buf = malloc(file_size);
+    fread(file_buf, 1, file_size, fp);
     char* filename = basename(address);
     char header[1000];
     sprintf(header, 
-    "HTTP/1.1 200 OK\n"
-    "Content-Type: application/octet-stream\n"
-    "Accept-Ranges: bytes\n"
-    "Content-Disposition: attachment; filename=\"%s\" \n" 
-    "Connection: close\n"
-            "\n",filename);
-    char *response = (char*) malloc(fileLen + strlen(header));
-    strncpy(response, header, strlen(header));
-    read(file_fd, response+strlen(header), fileLen);
+        "HTTP/1.1 200 OK\n"
+        "Content-Type: application/octet-stream\n"
+        "Accept-Ranges: bytes\n"
+        "Content-Disposition: attachment; filename=\"%s\" \n" 
+        "Content-Length: %d\n"
+        "Connection: keep-alive\n\n",
+        filename, file_size);
+    *response_size = file_size + strlen(header);
+    char *response = (char*) malloc(*response_size);
+    memcpy(response, header, strlen(header));
+    memcpy(response + strlen(header), file_buf, file_size);
     return response;
 }
 
@@ -79,7 +87,7 @@ void get_file_path(char* url, Route* route, char* address){
     snprintf(address, PATH_MAX, "%s%s", route->static_path, url + strlen(route->url));
 }
 
-char* handle_static(Route* route, char* url){
+char* handle_static(Route* route, char* url, int* response_size){
     char address[PATH_MAX];
     get_file_path(url, route, address);
     int file_fd;
@@ -92,6 +100,7 @@ char* handle_static(Route* route, char* url){
         else{
             char* response = malloc(sizeof(HTTP_RESPONSE_NOT_FOUND));
             strncpy(response, HTTP_RESPONSE_NOT_FOUND, sizeof(HTTP_RESPONSE_NOT_FOUND));
+            *response_size = strlen(HTTP_RESPONSE_NOT_FOUND);
             return response;
         }
     }
@@ -101,8 +110,9 @@ char* handle_static(Route* route, char* url){
     char* response;
     if (S_ISDIR(statbuf.st_mode)){
         response = get_directory(file_fd, address);
+        *response_size = strlen(response);
     }else {
-        response = get_file(file_fd, statbuf, address);
+        response = get_file(file_fd, statbuf, address, response_size);
     }
     return response;
 }

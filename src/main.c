@@ -55,7 +55,7 @@ char* strremove(char *str, const char *sub) {
     return str;
 }
 
-char *redirect_from_dest(const Route *route, char *http_req) {
+char *redirect_from_dest(const Route *route, char *http_req, int* response_size) {
     int dest_fd;
     struct sockaddr_in dest_addr;
 
@@ -95,11 +95,12 @@ char *redirect_from_dest(const Route *route, char *http_req) {
     }
 
     close(dest_fd);
-    printf("%s", buffer);
+
+    *response_size = strlen(buffer);
     return buffer;
 }
 
-char *get_response(int client_fd, char *buffer) {
+char *get_response(int client_fd, char *buffer, int* response_size) {
     struct sockaddr_in client_addr;
     socklen_t client_addr_len = sizeof(client_addr);
     int res = getpeername(client_fd, (struct sockaddr*) &client_addr, &client_addr_len);
@@ -125,12 +126,13 @@ char *get_response(int client_fd, char *buffer) {
         if (route == NULL){
             char* response = malloc(sizeof(HTTP_RESPONSE_NOT_FOUND));
             strncpy(response, HTTP_RESPONSE_NOT_FOUND, sizeof(HTTP_RESPONSE_NOT_FOUND));
+            *response_size =  sizeof(HTTP_RESPONSE_NOT_FOUND);
             return response;
         }
         else if (route->port > 0) {
-            return redirect_from_dest(route, buffer);
+            return redirect_from_dest(route, buffer, response_size);
         } else if (route->static_path) {
-            return handle_static(route, url);
+            return handle_static(route, url, response_size);
         }
     }
     return NULL;
@@ -140,12 +142,13 @@ void *handle_req(void *arg) {
     int client_fd = *((int*) arg);
     char *buffer = (char*) malloc(BUFFER_SIZE * sizeof(char));
     char *response = NULL;
+    int response_size = 0;
 
     ssize_t bytes_recvd = recv(client_fd, buffer, BUFFER_SIZE, 0);
     if (bytes_recvd > 0) {
-        response = get_response(client_fd, buffer);
+        response = get_response(client_fd, buffer, &response_size);
         if (response)
-            send(client_fd, response, strlen(response), 0);
+            send(client_fd, response, response_size, 0);
         else
             send(client_fd, HTTP_RESPONSE_BAD_REQUEST, sizeof(HTTP_RESPONSE_BAD_REQUEST), 0);
     }
