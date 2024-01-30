@@ -23,6 +23,7 @@ char* get_file(int file_fd, struct stat statbuf, char* address, int* response_si
     char *response = (char*) malloc(*response_size);
     memcpy(response, header, strlen(header));
     memcpy(response + strlen(header), file_buf, file_size);
+    free(file_buf);
     return response;
 }
 
@@ -32,20 +33,20 @@ char* get_directory(int dir_fd, char* address){
         "HTTP/1.1 200 OK \n"
         "Content-Type: text/html; charset:utf-8 \n"
         "Connection: close\n\n");
-    char *response = (char*) malloc(strlen(header) + 1000);
+    char *response = (char*) malloc(strlen(header) + 10000);
     strncpy(response, header, strlen(header));
     sprintf(response + strlen(header), "<html> \n"
                       "<head><title>Index of %s</title></head>\n"
                     "<body> \n"
                     "<h1>Index of %s</h1><hr><pre><a href=\"../\">../</a> \n", address, address);
 
-    int size = strlen(header) + 1000 - sizeof(response);
+    int size = 10000 - sizeof(response);
 
     struct dirent *entry;
     DIR *dir = opendir(address);
     while ((entry = readdir(dir)) != NULL) {
         if(entry->d_name[0] == '.') continue;
-        char *html_entry = (char*) malloc(1000);
+        char *html_entry = (char*) malloc(5000);
         char filePath[PATH_MAX];
         snprintf(filePath, sizeof(filePath), "%s/%s", address, entry->d_name);
         struct stat fileStat;
@@ -61,16 +62,16 @@ char* get_directory(int dir_fd, char* address){
                 entry->d_name, entry->d_name, timeStr);
             }
         }
-
         if (size > strlen(html_entry)){
             strncat(response, html_entry, strlen(html_entry));
             size -= strlen(html_entry);
         } else {
-            response = realloc(response, strlen(response) + 1001);
+            response = realloc(response, strlen(response) + strlen(html_entry) +  1001);
             size += 1000;
             strncat(response, html_entry, strlen(html_entry));
             size -= strlen(html_entry);
         }
+        free(html_entry);
     }
     char tail[100] = "</pre><hr></body>\n </html>\n";
     if (size > strlen(tail)){
