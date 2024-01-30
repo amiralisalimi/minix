@@ -75,13 +75,13 @@ char* get_directory(int dir_fd, char* address){
     return response;
 }
 
-void get_file_path(char* url, char* path, char* address){
-    snprintf(address, PATH_MAX, "%s%s", path, url +8);
+void get_file_path(char* url, Route* route, char* address){
+    snprintf(address, PATH_MAX, "%s%s", route->static_path, url + strlen(route->url));
 }
 
 char* handle_static(Route* route, char* url){
     char address[PATH_MAX];
-    get_file_path(url, route->static_path, address);
+    get_file_path(url, route, address);
     int file_fd;
     if (access(address, F_OK) == 0) {
         file_fd = open(address, O_RDONLY);

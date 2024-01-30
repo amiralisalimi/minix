@@ -42,7 +42,20 @@ int initsock(int port) {
     return server_fd;
 }
 
-char *redirect_from_dest(const Route *route, const char *http_req) {
+char* strremove(char *str, const char *sub) {
+    size_t len = strlen(sub);
+    if (len > 0) {
+        char *p = str;
+        size_t size = 0;
+        if ((p = strstr(p, sub)) != NULL) {
+            size = strlen(p + len - 1) + 1;
+            memmove(p, p + len -1, size);
+        }
+    }
+    return str;
+}
+
+char *redirect_from_dest(const Route *route, char *http_req) {
     int dest_fd;
     struct sockaddr_in dest_addr;
 
@@ -54,6 +67,8 @@ char *redirect_from_dest(const Route *route, const char *http_req) {
     dest_addr.sin_family = AF_INET;
     dest_addr.sin_port = htons(route->port);
 
+    http_req = strremove(http_req, route->url);
+
     if (inet_pton(AF_INET, LOCALHOST, &dest_addr.sin_addr) <= 0) {
         perror("invalid address destination");
         return NULL;
@@ -62,7 +77,7 @@ char *redirect_from_dest(const Route *route, const char *http_req) {
     int status;
     if ((status = connect(dest_fd,
                     (struct sockaddr*) &dest_addr,
-                    sizeof(dest_addr) < 0))) {
+                    sizeof(dest_addr)) < 0)) {
         perror("connection to destination failed");
         return NULL;
     }
@@ -70,7 +85,9 @@ char *redirect_from_dest(const Route *route, const char *http_req) {
     send(dest_fd, http_req, strlen(http_req), 0);
 
     char *buffer = (char*) malloc(BUFFER_SIZE * sizeof(char));
-    int res = read(dest_fd, buffer, sizeof(buffer) - 1);
+    int res;
+    int pointer  =0;
+    while(res = read(dest_fd, buffer + pointer, (BUFFER_SIZE - pointer) * sizeof(char)) > 0);
 
     if (res < 0) {
         perror("unable to read from destination");
@@ -78,10 +95,11 @@ char *redirect_from_dest(const Route *route, const char *http_req) {
     }
 
     close(dest_fd);
+    printf("%s", buffer);
     return buffer;
 }
 
-char *get_response(int client_fd, const char *buffer) {
+char *get_response(int client_fd, char *buffer) {
     struct sockaddr_in client_addr;
     socklen_t client_addr_len = sizeof(client_addr);
     int res = getpeername(client_fd, (struct sockaddr*) &client_addr, &client_addr_len);
