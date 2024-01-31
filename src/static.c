@@ -27,7 +27,7 @@ char* get_file(int file_fd, struct stat statbuf, char* address, int* response_si
 
 char* get_directory(int dir_fd, char* address){
     char header[300];
-    snprintf(header, strlen(DIR_HTTP_HEADER), DIR_HTTP_HEADER);
+    snprintf(header, strlen(DIR_HTTP_HEADER) + 1, DIR_HTTP_HEADER);
     char *response = (char*) malloc(strlen(header) + 10000);
     strncpy(response, header, strlen(header));
     snprintf(response + strlen(header), 10000, DIR_HTML_HEADER, address, address);
