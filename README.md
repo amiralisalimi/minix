@@ -12,6 +12,15 @@ By running this command the Mini-Nginx will listen to port 8000:
 ```shell
     make run
 ```
+The `config.txt` will be created automatically, if it does not exist.
+You can declare your routing rules in the `config.txt` file. 
+A basic example of `config.txt` is:
+```text
+/nine/          ->      9000
+/nine/nine/     ->      9090
+/static/        ->      /home/ali/sta1/
+/static/sec/    ->      /home/ali/sta2/
+```
 
 <br/>
 
