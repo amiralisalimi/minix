@@ -48,7 +48,7 @@ char* strremove(char *str, const char *sub) {
         char *p = str;
         size_t size = 0;
         if ((p = strstr(p, sub)) != NULL) {
-            size = strlen(p + len - 1) + 1;
+            size = strlen(p + len) + 1;
             memmove(p + 1, p + len, size);
         }
     }
