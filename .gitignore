@@ -2,3 +2,5 @@
 .idea/
 main
 config.txt
+test/basic-django-app/.venv
+test/basic-django-app/db.sqlite3
