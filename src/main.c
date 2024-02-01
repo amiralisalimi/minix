@@ -156,12 +156,13 @@ char *get_response(int client_fd, char *buffer, int* response_size) {
 void *handle_req(void *arg) {
     int client_fd = *((int*) arg);
     char *buffer = (char*) malloc(BUFFER_SIZE * sizeof(char));
-    memset(buffer, 0, BUFFER_SIZE);
+    // memset(buffer, 0, BUFFER_SIZE);
     char *response = NULL;
     int response_size = 0;
 
     ssize_t bytes_recvd = recv(client_fd, buffer, BUFFER_SIZE, 0);
     if (bytes_recvd > 0) {
+        buffer[bytes_recvd] = 0;
         response = get_response(client_fd, buffer, &response_size);
         if (response)
             send(client_fd, response, response_size, 0);
