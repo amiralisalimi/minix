@@ -19,7 +19,7 @@
         "Content-Type: application/octet-stream\n" \
         "Accept-Ranges: bytes\n" \
         "Cache-Control: private,max-age=0\n" \
-        "Content-Disposition: inline; filename=\"%s\" \n" \
+        "Content-Disposition: attachment; filename=\"%s\" \n" \
         "Content-Length: %d\n" \
         "Connection: keep-alive\n" \
         "Etag: \"%s\"\n" \
