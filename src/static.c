@@ -129,10 +129,12 @@ char* handle_static(Route* route, char* url, const char *http_req, int* response
     if (S_ISDIR(statbuf.st_mode)){
         response = get_directory(file_fd, address);
         *response_size = strlen(response);
+#if USE_STATIC_CACHE
     } else if (check_not_modified(http_req, statbuf)) {
         response = malloc(sizeof(HTTP_RESPONSE_NOT_MODIFIED));
         strncpy(response, HTTP_RESPONSE_NOT_MODIFIED, sizeof(HTTP_RESPONSE_NOT_MODIFIED));
         *response_size = strlen(HTTP_RESPONSE_NOT_MODIFIED);
+#endif
     } else {
         response = get_file(file_fd, statbuf, address, response_size);
     }
