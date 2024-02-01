@@ -1,6 +1,7 @@
 #ifndef PROJECT_DEFS_H
 #define PROJECT_DEFS_H
 
+#define USE_PTHREAD 1
 #define MAX_ROUTES  20
 #define MAX_THREADS 100
 #define MAX_STR_LENGTH 100

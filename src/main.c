@@ -211,11 +211,16 @@ int main(int argc, char *argv[]) {
             continue;
         }
 
-        pthread_t thread_id;
-        pthread_create(&thread_id, NULL, handle_req, (void*) client_fd);
-        pthread_detach(thread_id);
-        threads[cur_thread++] = thread_id;
-        cur_thread %= MAX_THREADS;
+        if (USE_PTHREAD) {
+            pthread_t thread_id;
+            pthread_create(&thread_id, NULL, handle_req, (void*) client_fd);
+            pthread_detach(thread_id);
+            threads[cur_thread++] = thread_id;
+            cur_thread %= MAX_THREADS;
+        } else {
+            // Respond without multi-threading, if `use_pthread` is 0:
+            handle_req((void *) client_fd);
+        }
     }
 
     close(server_fd);
