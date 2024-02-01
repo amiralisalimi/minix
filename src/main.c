@@ -85,12 +85,24 @@ char *redirect_from_dest(const Route *route, char *http_req, int* response_size)
     send(dest_fd, http_req, strlen(http_req), 0);
 
     char *buffer = (char*) malloc(BUFFER_SIZE * sizeof(char));
-    /* int res;
+    int res, content_length = -1;
+    char* header_end, *content_length_start, *content_length_end;
+    char length_buffer[MAX_STR_LENGTH];
     int pointer = 0;
     while((res = read(dest_fd, buffer + pointer, (BUFFER_SIZE - pointer) * sizeof(char))) > 0){
         pointer += res;
-    } */
-    int res = read(dest_fd, buffer, BUFFER_SIZE * sizeof(char));
+        if ((header_end = strstr(buffer, "\r\n\r\n")) != NULL){
+
+            if ((content_length_start = strstr(buffer, "Content-Length")) != NULL &&
+                (content_length_end = strstr(content_length_start, "\r\n")) != NULL){
+                int len = (int)(content_length_end - content_length_start) - 16;
+                strncpy(length_buffer, content_length_start + 16, len);
+                length_buffer[len] = '\0';
+                content_length = atoi(length_buffer);
+            }
+            if (content_length!= -1 && strlen(header_end) - 4 == content_length) break;
+        }
+    }
 
     if (res < 0) {
         perror("unable to read from destination");
