@@ -156,6 +156,7 @@ char *get_response(int client_fd, char *buffer, int* response_size) {
 void *handle_req(void *arg) {
     int client_fd = *((int*) arg);
     char *buffer = (char*) malloc(BUFFER_SIZE * sizeof(char));
+    memset(buffer, 0, BUFFER_SIZE);
     char *response = NULL;
     int response_size = 0;
 
