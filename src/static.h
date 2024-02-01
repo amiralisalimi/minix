@@ -18,9 +18,12 @@
 #define FILE_HTTP_HEADER "HTTP/1.1 200 OK\n" \
         "Content-Type: application/octet-stream\n" \
         "Accept-Ranges: bytes\n" \
-        "Content-Disposition: attachment; filename=\"%s\" \n" \
+        "Cache-Control: private,max-age=0\n" \
+        "Content-Disposition: inline; filename=\"%s\" \n" \
         "Content-Length: %d\n" \
-        "Connection: keep-alive\n\n"
+        "Connection: keep-alive\n" \
+        "Etag: \"%s\"\n" \
+        "Last-Modified: %s\n\n"
 
 #define DIR_HTTP_HEADER "HTTP/1.1 200 OK \n" \
         "Content-Type: text/html; charset:utf-8 \n" \
@@ -31,7 +34,7 @@
                     "<body> \n" \
                     "<h1>Index of %s</h1><hr><pre><a href=\"../\">../</a> \n"
 
-                    
-char* handle_static(Route* route, char* url, int* response_size);
+
+char* handle_static(Route* route, char* url, const char *http_req, int* response_size);
 
 #endif

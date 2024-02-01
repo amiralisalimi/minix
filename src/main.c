@@ -135,7 +135,7 @@ char *get_response(int client_fd, char *buffer, int* response_size) {
         else if (route->port > 0) {
             return redirect_from_dest(route, buffer, response_size);
         } else if (route->static_path) {
-            return handle_static(route, url, response_size);
+            return handle_static(route, url, buffer, response_size);
         }
     }
     return NULL;
