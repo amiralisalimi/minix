@@ -40,7 +40,7 @@ char* get_directory(int dir_fd, char* address){
     strncpy(response, header, strlen(header));
     snprintf(response + strlen(header), 10000, DIR_HTML_HEADER, address, address);
 
-    int size = 10000 - sizeof(response);
+    int size = 10000 - strlen(response);
 
     struct dirent *entry;
     DIR *dir = opendir(address);
@@ -62,14 +62,14 @@ char* get_directory(int dir_fd, char* address){
                     entry->d_name, entry->d_name, timeStr);
             }
         }
-        if (size > strlen(html_entry)){
+        if (size > strlen(html_entry) + 1){
             strncat(response, html_entry, strlen(html_entry));
-            size -= strlen(html_entry);
+            size -= strlen(html_entry) + 1;
         } else {
             response = realloc(response, strlen(response) + strlen(html_entry) +  1001);
             size += 1000;
             strncat(response, html_entry, strlen(html_entry));
-            size -= strlen(html_entry);
+            size -= strlen(html_entry) + 1;
         }
         free(html_entry);
     }
