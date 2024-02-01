@@ -1,5 +1,13 @@
 #include "static.h"
 
+void generate_file_headers(char *header, const char *filename, const struct stat fstat) {
+    struct tm last_modified = *gmtime(&fstat.st_mtime);
+    char lmstr[100];
+    strftime(lmstr, sizeof(lmstr), "%a, %d %b %Y %H:%M:%S %Z", &last_modified);
+    char etag[100];
+    snprintf(etag, sizeof(etag), "%lx-%x", (unsigned long) fstat.st_mtime, (unsigned) fstat.st_size);
+    snprintf(header, 1000, FILE_HTTP_HEADER, filename, (int) fstat.st_size, etag, lmstr);
+}
 
 char* get_file(int file_fd, struct stat statbuf, char* address, int* response_size){
     FILE *fp = fopen(address, "r");
@@ -14,8 +22,8 @@ char* get_file(int file_fd, struct stat statbuf, char* address, int* response_si
     char* filename = basename(address);
 
     char header[1000];
+    generate_file_headers(header, filename, statbuf);
 
-    snprintf(header, 1000, FILE_HTTP_HEADER, filename, file_size);
     *response_size = file_size + strlen(header);
     char *response = (char*) malloc(*response_size);
     memcpy(response, header, strlen(header));
@@ -79,7 +87,25 @@ void get_file_path(char* url, Route* route, char* address){
     snprintf(address, PATH_MAX, "%s%s", route->static_path, url + strlen(route->url));
 }
 
-char* handle_static(Route* route, char* url, int* response_size){
+int check_not_modified(const char *http_req, struct stat fstat) {
+    struct tm last_modified = *gmtime(&fstat.st_mtime);
+    char lmstr[100];
+    strftime(lmstr, sizeof(lmstr), "%a, %d %b %Y %H:%M:%S %Z", &last_modified);
+    char etag[100];
+    snprintf(etag, sizeof(etag), "\"%lx-%x\"", (unsigned long) fstat.st_mtime, (unsigned) fstat.st_size);
+    char *header_modified_since, *header_none_match;
+    if (header_none_match = strstr(http_req, HTTP_IF_NONE_MATCH_HEADER)) {
+        header_none_match += strlen(HTTP_IF_NONE_MATCH_HEADER);
+        return (strncmp(etag, header_none_match, strlen(etag)) == 0);
+    }
+    if (header_modified_since = strstr(http_req, HTTP_IF_MODIFIED_SINCE_HEADER)) {
+        header_modified_since += strlen(HTTP_IF_MODIFIED_SINCE_HEADER);
+        return (strncmp(lmstr, header_modified_since, strlen(lmstr)) == 0);
+    }
+    return 0;
+}
+
+char* handle_static(Route* route, char* url, const char *http_req, int* response_size){
     char address[PATH_MAX];
     get_file_path(url, route, address);
     int file_fd;
@@ -103,7 +129,11 @@ char* handle_static(Route* route, char* url, int* response_size){
     if (S_ISDIR(statbuf.st_mode)){
         response = get_directory(file_fd, address);
         *response_size = strlen(response);
-    }else {
+    } else if (check_not_modified(http_req, statbuf)) {
+        response = malloc(sizeof(HTTP_RESPONSE_NOT_MODIFIED));
+        strncpy(response, HTTP_RESPONSE_NOT_MODIFIED, sizeof(HTTP_RESPONSE_NOT_MODIFIED));
+        *response_size = strlen(HTTP_RESPONSE_NOT_MODIFIED);
+    } else {
         response = get_file(file_fd, statbuf, address, response_size);
     }
     return response;
